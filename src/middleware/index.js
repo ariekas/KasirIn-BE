@@ -1,10 +1,12 @@
-const {CheckAlreadyLogin} = require('./auth/auth')
+const {CheckAlreadyLogin} = require('./auth/alreadyLogin')
 const {loginLimit} = require('./auth/loginLimit')
+const {validateLogin} = require('./auth/validateLogin')
 const {notFound} = require('./not_found/notFound')
 module.exports = {
     auth:{
         CheckAlreadyLogin,
-        loginLimit
+        loginLimit,
+        validateLogin
     },
     notFound:{
         notFound

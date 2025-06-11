@@ -1,3 +1,4 @@
+// Cegah brute-force login dengan membatasi jumlah percobaan login dari IP yang sama.
 const rateLimit = require('express-rate-limit');
 
 exports.loginLimit = rateLimit({

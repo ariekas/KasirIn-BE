@@ -4,8 +4,6 @@ const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
 const {username, password } = req.body
-
-console.log(req.body)
 try {
     
     const user = await prisma.user.findUnique({where:{username}})

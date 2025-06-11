@@ -215,6 +215,7 @@ model SalesReport {
 enum Role {
   admin
   kasir
+  stoker
 }
 
 enum MovementType {
