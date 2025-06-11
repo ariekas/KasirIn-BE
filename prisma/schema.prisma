@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   username  String    @unique
   email     String    @unique
   password  String
@@ -22,7 +22,7 @@ model User {
 }
 
 model Category {
-  id         Int       @id @default(autoincrement())
+  id         String       @id @default(uuid())
   name       String
   isActive   Boolean   @default(true)
   createdAt  DateTime  @default(now())
@@ -33,9 +33,9 @@ model Category {
 }
 
 model Product {
-  id           Int       @id @default(autoincrement())
+  id           String       @id @default(uuid())
   category     Category  @relation(fields: [categoryId], references: [id])
-  categoryId   Int
+  categoryId   String
   name         String
   description  String?
   sku          String    @unique
@@ -54,19 +54,19 @@ model Product {
 }
 
 model StockMovement {
-  id           Int       @id @default(autoincrement())
+  id           String       @id @default(uuid())
   product      Product   @relation(fields: [productId], references: [id])
-  productId    Int
+  productId    String
   movementType MovementType
   quantity     Int
   notes        String?
   createdBy    User      @relation(fields: [createdById], references: [id])
-  createdById  Int
+  createdById  String
   createdAt    DateTime  @default(now())
 }
 
 model Discount {
-  id                Int                 @id @default(autoincrement())
+  id                String                 @id @default(uuid())
   name              String
   discountType      DiscountType
   discountValue     Decimal             @db.Decimal(10,2)
@@ -87,25 +87,25 @@ model Discount {
 }
 
 model DiscountProduct {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(uuid())
   discount    Discount @relation(fields: [discountId], references: [id])
-  discountId  Int
+  discountId  String
   product     Product  @relation(fields: [productId], references: [id])
-  productId   Int
+  productId   String
   createdAt   DateTime @default(now())
 }
 
 model DiscountCategory {
-  id          Int       @id @default(autoincrement())
+  id          String       @id @default(uuid())
   discount    Discount  @relation(fields: [discountId], references: [id])
-  discountId  Int
+  discountId  String
   category    Category  @relation(fields: [categoryId], references: [id])
-  categoryId  Int
+  categoryId  String
   createdAt   DateTime  @default(now())
 }
 
 model Members {
-  id            Int       @id @default(autoincrement())
+  id            String       @id @default(uuid())
   memberCode    String    @unique
   name          String
   phone         String?   @unique
@@ -114,7 +114,7 @@ model Members {
   discountAmount Decimal?
   isActive      Boolean   @default(true)
   createdBy     User      @relation(fields: [createdById], references: [id])
-  createdById   Int
+  createdById   String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now())
 
@@ -122,16 +122,16 @@ model Members {
 }
 
 model Transaction {
-  id              Int               @id @default(autoincrement())
+  id              String               @id @default(uuid())
   transactionCode String            @unique
   member          Members?          @relation(fields: [memberId], references: [id])
-  memberId        Int?
+  memberId        String?
   cashier         User              @relation("CashierTransactions", fields: [cashierId], references: [id])
-  cashierId       Int
+  cashierId       String
   transactionDate DateTime          @default(now())
   subtotal        Decimal           @db.Decimal(15,2)
   discount        Discount?         @relation(fields: [discountId], references: [id])
-  discountId      Int?
+  discountId      String?
   discountAmount  Decimal           @default(0) @db.Decimal(15,2)
   taxAmount       Decimal           @default(0) @db.Decimal(15,2)
   totalAmount     Decimal           @db.Decimal(15,2)
@@ -149,11 +149,11 @@ model Transaction {
 }
 
 model TransactionItem {
-  id           Int      @id @default(autoincrement())
+  id           String      @id @default(uuid())
   transaction  Transaction @relation(fields: [transactionId], references: [id])
-  transactionId Int
+  transactionId String
   product       Product  @relation(fields: [productId], references: [id])
-  productId     Int
+  productId     String
   productName   String
   productSku    String
   quantity      Int
@@ -164,7 +164,7 @@ model TransactionItem {
 }
 
 model PaymentGateway {
-  id         Int      @id @default(autoincrement())
+  id         String      @id @default(uuid())
   name       String
   code       String   @unique
   apiKey     String?
@@ -178,11 +178,11 @@ model PaymentGateway {
 }
 
 model Payment {
-  id               Int             @id @default(autoincrement())
+  id               String             @id @default(uuid())
   transaction      Transaction     @relation(fields: [transactionId], references: [id])
-  transactionId    Int
+  transactionId    String
   paymentGateway   PaymentGateway  @relation(fields: [paymentGatewayId], references: [id])
-  paymentGatewayId Int
+  paymentGatewayId String
   externalPaymentId String?
   amount           Decimal         @db.Decimal(15,2)
   status           PaymentStatus   @default(pending)
@@ -192,15 +192,15 @@ model Payment {
 }
 
 model Barcode {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(uuid())
   product   Product  @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   barcode   String   @unique
   createdAt DateTime @default(now())
 }
 
 model SalesReport {
-  id               Int       @id @default(autoincrement())
+  id               String       @id @default(uuid())
   reportDate       DateTime
   reportType       ReportType
   totalTransactions Int      @default(0)
