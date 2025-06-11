@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // atau postgresql sesuai database Anda
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  email     String    @unique
+  password  String
+  role      Role
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+
+  stockMovements StockMovement[]
+  createdMembers Members[]
+  transactions   Transaction[] @relation("CashierTransactions")
+}
+
+model Category {
+  id         Int       @id @default(autoincrement())
+  name       String
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
+
+  products            Product[]
+  discountCategories  DiscountCategory[]
+}
+
+model Product {
+  id           Int       @id @default(autoincrement())
+  category     Category  @relation(fields: [categoryId], references: [id])
+  categoryId   Int
+  name         String
+  description  String?
+  sku          String    @unique
+  barcode      String?   @unique
+  costPrice    Decimal   @db.Decimal(15,2)
+  sellingPrice Decimal   @db.Decimal(15,2)
+  stockQuantity Int      @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+
+  stockMovements     StockMovement[]
+  discountProducts   DiscountProduct[]
+  transactionItems   TransactionItem[]
+  barcodes           Barcode[]
+}
+
+model StockMovement {
+  id           Int       @id @default(autoincrement())
+  product      Product   @relation(fields: [productId], references: [id])
+  productId    Int
+  movementType MovementType
+  quantity     Int
+  notes        String?
+  createdBy    User      @relation(fields: [createdById], references: [id])
+  createdById  Int
+  createdAt    DateTime  @default(now())
+}
+
+model Discount {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  discountType      DiscountType
+  discountValue     Decimal             @db.Decimal(10,2)
+  minPurchaseAmount Decimal             @db.Decimal(15,2) @default(0)
+  maxDiscountAmount Decimal?            @db.Decimal(15,2)
+  startDate         DateTime
+  endDate           DateTime
+  isActive          Boolean             @default(true)
+  usageLimit        Int?
+  usageCount        Int                 @default(0)
+  applicableTo      ApplicableTo        @default(all_products)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @default(now())
+
+  discountProducts   DiscountProduct[]
+  discountCategories DiscountCategory[]
+  transactions       Transaction[]
+}
+
+model DiscountProduct {
+  id          Int      @id @default(autoincrement())
+  discount    Discount @relation(fields: [discountId], references: [id])
+  discountId  Int
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   Int
+  createdAt   DateTime @default(now())
+}
+
+model DiscountCategory {
+  id          Int       @id @default(autoincrement())
+  discount    Discount  @relation(fields: [discountId], references: [id])
+  discountId  Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  createdAt   DateTime  @default(now())
+}
+
+model Members {
+  id            Int       @id @default(autoincrement())
+  memberCode    String    @unique
+  name          String
+  phone         String?   @unique
+  joinDate      DateTime  @default(now())
+  endDate       DateTime?
+  discountAmount Decimal?
+  isActive      Boolean   @default(true)
+  createdBy     User      @relation(fields: [createdById], references: [id])
+  createdById   Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
+
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id              Int               @id @default(autoincrement())
+  transactionCode String            @unique
+  member          Members?          @relation(fields: [memberId], references: [id])
+  memberId        Int?
+  cashier         User              @relation("CashierTransactions", fields: [cashierId], references: [id])
+  cashierId       Int
+  transactionDate DateTime          @default(now())
+  subtotal        Decimal           @db.Decimal(15,2)
+  discount        Discount?         @relation(fields: [discountId], references: [id])
+  discountId      Int?
+  discountAmount  Decimal           @default(0) @db.Decimal(15,2)
+  taxAmount       Decimal           @default(0) @db.Decimal(15,2)
+  totalAmount     Decimal           @db.Decimal(15,2)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus     @default(pending)
+  paymentReference String?
+  cashReceived    Decimal?          @db.Decimal(15,2)
+  changeAmount    Decimal?          @db.Decimal(15,2)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now())
+
+  transactionItems TransactionItem[]
+  payments         Payment[]
+}
+
+model TransactionItem {
+  id           Int      @id @default(autoincrement())
+  transaction  Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int
+  product       Product  @relation(fields: [productId], references: [id])
+  productId     Int
+  productName   String
+  productSku    String
+  quantity      Int
+  unitPrice     Decimal  @db.Decimal(15,2)
+  discountAmount Decimal @default(0) @db.Decimal(15,2)
+  subtotal      Decimal  @db.Decimal(15,2)
+  createdAt     DateTime @default(now())
+}
+
+model PaymentGateway {
+  id         Int      @id @default(autoincrement())
+  name       String
+  code       String   @unique
+  apiKey     String?
+  secretKey  String?
+  merchantId String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  payments   Payment[]
+}
+
+model Payment {
+  id               Int             @id @default(autoincrement())
+  transaction      Transaction     @relation(fields: [transactionId], references: [id])
+  transactionId    Int
+  paymentGateway   PaymentGateway  @relation(fields: [paymentGatewayId], references: [id])
+  paymentGatewayId Int
+  externalPaymentId String?
+  amount           Decimal         @db.Decimal(15,2)
+  status           PaymentStatus   @default(pending)
+  responseData     Json?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @default(now())
+}
+
+model Barcode {
+  id        Int      @id @default(autoincrement())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  barcode   String   @unique
+  createdAt DateTime @default(now())
+}
+
+model SalesReport {
+  id               Int       @id @default(autoincrement())
+  reportDate       DateTime
+  reportType       ReportType
+  totalTransactions Int      @default(0)
+  totalItemsSold    Int      @default(0)
+  grossSales        Decimal  @default(0) @db.Decimal(15,2)
+  totalDiscounts    Decimal  @default(0) @db.Decimal(15,2)
+  netSales          Decimal  @default(0) @db.Decimal(15,2)
+  totalTax          Decimal  @default(0) @db.Decimal(15,2)
+  generatedAt       DateTime @default(now())
+}
+
+enum Role {
+  admin
+  kasir
+}
+
+enum MovementType {
+  in
+  out
+  adjustment
+}
+
+enum DiscountType {
+  percentage
+  fixed_amount
+}
+
+enum ApplicableTo {
+  all_products
+  specific_products
+  categories
+}
+
+enum PaymentMethod {
+  cash
+  card
+  digital_wallet
+  bank_transfer
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+  success
+  cancelled
+}
+
+enum ReportType {
+  daily
+  weekly
+  monthly
+  yearly
+}
