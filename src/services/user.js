@@ -13,8 +13,8 @@ exports.create = async(data) => {
 }
 
 exports.delete = async(id) => {
-    const userId = await getById(id)
+    const userId = await exports.getById(id);
     if(!userId) throw new Error('User not found')
 
-    return await prisma.user.delete(userId)
+    return await prisma.user.delete({where: {id}})
 }

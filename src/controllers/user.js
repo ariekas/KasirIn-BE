@@ -17,3 +17,13 @@ exports.createUser = async (req, res) => {
         data: newUser
     })
 }
+
+exports.deleteUser = async (req, res) => {
+    const deleteUser = await userService.delete(req.params.id)
+
+    res.status(200).json({
+        message: 'User deleted successfully',
+        data: deleteUser
+    })
+
+}
