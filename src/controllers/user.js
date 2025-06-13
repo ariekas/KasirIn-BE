@@ -1,12 +1,17 @@
 const userService = require("../services/user");
 
 exports.getAllUser = async (req, res) => {
-  const users = await userService.getAll();
-
-  res.status(200).json({
-    message: "success get all users",
-    data: users,
-  });
+    try {
+        const users = await userService.getAll();
+      
+        res.status(200).json({
+          message: "success get all users",
+          data: users,
+        });
+    } catch (error) {
+        console.error('Error getting user:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 };
 
 exports.createUser = async (req, res) => {
@@ -31,10 +36,21 @@ exports.createUser = async (req, res) => {
 };
 
 exports.deleteUser = async (req, res) => {
-  const deleteUser = await userService.delete(req.params.id);
+    try {
+        const deleteUser = await userService.delete(req.params.id);
 
-  res.status(200).json({
-    message: "User deleted successfully",
-    data: deleteUser,
-  });
+        res.status(200).json({
+          message: "User deleted successfully",
+          data: deleteUser,
+        });
+    } catch (error) {
+        if (
+            error.message === `User with id ${req.params.id} not found`
+        ) {
+            return res.status(400).json({ message: error.message });
+        }
+    
+        console.error('Error deleting user:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 };

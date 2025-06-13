@@ -5,7 +5,10 @@ exports.getAll = async() => {
 }
 
 exports.getById = async(id) => {
-    return await prisma.user.findUnique({where: {id}})
+    const GetUserId = await prisma.user.findUnique({where: {id}});
+    if(!GetUserId) throw new Error(`User with id ${id} not found`);
+
+    return GetUserId;
 }
 
 exports.create = async(data) => {
@@ -28,7 +31,7 @@ exports.create = async(data) => {
 
 exports.delete = async(id) => {
     const userId = await exports.getById(id);
-    if(!userId) throw new Error('User not found')
+    if(!userId) throw new Error(`User with id ${id} not found`)
 
     return await prisma.user.delete({where: {id}})
 }
