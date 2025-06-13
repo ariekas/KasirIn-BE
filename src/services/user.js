@@ -9,6 +9,20 @@ exports.getById = async(id) => {
 }
 
 exports.create = async(data) => {
+    const checkUsername = await prisma.user.findUnique({
+        where: {username: data.username}
+    })
+    if(checkUsername){
+        throw new Error('This username already exist');
+    }
+    
+    const checkEmail = await prisma.user.findUnique({
+        where: {email: data.email}
+    })
+    if(checkEmail){
+        throw new Error('This username already exist');
+    }
+
     return await prisma.user.create({data})
 }
 
